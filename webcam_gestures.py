@@ -50,7 +50,7 @@ def show(cap, title, mirror=False, line2=''):
     return frame,key
 
 
-def capture(cap, frames, fps, mirror=False, on_vector=None):
+def capture(cap, frames, fps, mirror=False, on_vector=None, store=True):
     """Target cadence; actual intervals vary with camera/CPU. Temporal model
     currently interprets frame index, not true elapsed seconds."""
     encoder=FrameToVector(VisionConfig())
@@ -66,8 +66,9 @@ def capture(cap, frames, fps, mirror=False, on_vector=None):
             return None
         vec=encoder.push_frame(frame)
         if on_vector is not None: on_vector(vec)
-        x.append(vec)
-    return np.asarray(x,dtype=np.float32)
+        if store:
+            x.append(vec)
+    return np.asarray(x,dtype=np.float32) if store else True
 
 
 def record(args):
@@ -148,7 +149,7 @@ def predict(args):
             def step_memory(u):
                 nonlocal state
                 state=net.step(state,u)
-            x=capture(cap,frames,args.fps,args.mirror,on_vector=step_memory)
+            x=capture(cap,frames,args.fps,args.mirror,on_vector=step_memory,store=False)
             if x is None:break
             score=float(head.score(state[None,:])[0])
             direction='left_to_right' if score>=0 else 'right_to_left'

@@ -18,6 +18,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: python -m pip install -r requirements-vision.txt
+      - run: python -m py_compile webcam_gestures.py vision_core.py vision_train.py
       - run: python -m unittest discover -s tests -v
       - run: python vision_train.py --simulate --clips-per-session 40 --data smoke_vision.npz --model models/smoke_loop.npz
       - run: python demo.py --first 1 --second -1

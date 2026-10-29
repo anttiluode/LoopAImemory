@@ -72,6 +72,25 @@ Task B: recover the binary input **six steps earlier** from only the final state
 
 The high linear-recall scores are expected for a 16D noisily encoded 12-step binary stream with fixed random projections. This is **not** evidence of extraordinary compression capacity or superior general-world memory.
 
+
+## New: predict the next event
+
+Run `python3.13 predict_next.py` to train on a synthetic *second-order* sequence. The stream is constructed with P(next symbol = symbol two observations before next) = 90%. The latest frame alone cannot tell the answer. We train a linear predictor on the final history state, no symbolic knowledge of the generator in the readout.
+
+Five-seed means (1,200 training and 600 independent test sequences per seed):
+
+| Predictor | Accuracy |
+|---|---:|
+| Latest event alone | 51.2% |
+| Exponential moving average | 61.3% |
+| Exact preceding-two-step event, oracle | **91.1%** |
+| Signed linear loop | **91.1%** |
+| Signed gated loop | **91.1%** |
+| Identity gated loop | 86.5% |
+| Dual-path 32D | **91.1%** |
+
+The loop learned a useful history-to-forecast map with a linear head. However, the **two-frame oracle ties it**. No claim of advantage is justified without harder tasks, comparable budgets, or robustness tests. This is an example of predictive sequence learning, not general temporal understanding.
+
 ## Boundaries of the experiment
 
 - Toy vector events, not real webcam gestures, raw wave propagation, language understanding or neuron measurements.

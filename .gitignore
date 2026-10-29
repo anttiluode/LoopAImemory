@@ -2,3 +2,8 @@ __pycache__/
 *.py[cod]
 .venv/
 results.json
+
+# Local vision recordings and trained models (potentially sensitive)
+gestures*.npz
+synthetic_vision*.npz
+models/

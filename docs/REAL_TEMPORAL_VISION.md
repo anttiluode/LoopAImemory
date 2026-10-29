@@ -49,3 +49,13 @@ The numerical loop follows exactly the signed linear recurrence from the existin
 2. Add a small online temporal-event parser that reports `event_start`, `direction`, and `event_end` to a local language model, *only after verifying predictive accuracy*.
 3. Benchmark GRUs, Wave-RNN and temporal CNNs on the same real sessions, matched for parameters and state size.
 4. Replace frame-step rotation with a true elapsed-time operator. Compare response after standardized delays and explicit state erasures.
+
+## AI-facing event stream (optional)
+
+    python3.13 webcam_gestures.py predict --model models/gesture_loop.npz --fps 8 --events-jsonl local_events.jsonl
+
+After each captured clip the application **optionally** appends a JSON object such as
+
+    {"event_type":"motion_direction","direction":"left_to_right","margin":0.42,"model":"signed_linear","frames":30,"fps_target":8.0,"source":"local_webcam","observed_at":"...UTC..."}
+
+That local stream can be consumed by a separate script, Perception Lab node, or a locally running LLM. The `margin` is **not a calibrated probability**, and the stream does not yet include object identity or scene understanding. Nothing is transmitted automatically.

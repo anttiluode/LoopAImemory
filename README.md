@@ -109,3 +109,26 @@ The loop learned a useful history-to-forecast map with a linear head. However, t
 5. Explore neural links by comparing formal phase/probe predictions with independent cortex recordings, not visual similarity between heatmaps.
 
 **The research question:** Can a compact history-dependent state become an efficient, robust and trainable interface between continuously sensed events and decisions made later? This repository is where we can find out.
+
+## Temporal vision front-end (new)
+
+We can now train and evaluate on **short visual motion clips**, not only synthetic symbol vectors. The camera pipeline is a fixed 16×16 grayscale-difference encoder, a 256→16 fixed projection, and the existing small recurrent state. Only a linear head learns motion direction **after the object disappears**.
+
+Try the full synthetic-camera check first:
+
+```powershell
+python3.13 -m pip install -r requirements-vision.txt
+python3.13 vision_train.py --simulate --clips-per-session 140 --data synthetic_vision.npz
+```
+
+Then collect labeled real webcam gestures in two independent sessions:
+
+```powershell
+python3.13 webcam_gestures.py record --session day1
+python3.13 webcam_gestures.py record --session day2
+python3.13 vision_train.py --data gestures.npz --test-session day2
+python3.13 webcam_gestures.py predict
+```
+
+See [real temporal vision protocol](docs/REAL_TEMPORAL_VISION.md) for camera instructions, privacy caveats, strong baselines, and limitations. **No real webcam accuracy is claimed.** The default trained model is a minimal 16D *linear* rotating state because it tied the larger gated models on our first synthetic visual test. The special Möbius sign or apical-like nonlinearity has not earned an advantage here.
+

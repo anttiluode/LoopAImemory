@@ -9,6 +9,8 @@ The camera is never uploaded; projected feature vectors still deserve privacy.
 """
 from pathlib import Path
 import argparse
+import json
+from datetime import datetime, timezone
 import time
 import cv2
 import numpy as np
@@ -149,8 +151,18 @@ def predict(args):
             x=capture(cap,frames,args.fps,args.mirror,on_vector=step_memory)
             if x is None:break
             score=float(head.score(state[None,:])[0])
-            print('Temporal decision:', 'LEFT -> RIGHT' if score>=0 else 'RIGHT -> LEFT',
-                  f'(uncalibrated linear margin {score:.3f})')
+            direction='left_to_right' if score>=0 else 'right_to_left'
+            print('Temporal decision:', direction, f'(uncalibrated linear margin {score:.3f})')
+            if args.events_jsonl:
+                event=dict(observed_at=datetime.now(timezone.utc).isoformat(),
+                           event_type='motion_direction', direction=direction,
+                           margin=score, model=model, frames=frames,
+                           fps_target=args.fps, source='local_webcam')
+                out=Path(args.events_jsonl)
+                out.parent.mkdir(parents=True,exist_ok=True)
+                with out.open('a',encoding='utf8') as stream:
+                    stream.write(json.dumps(event)+'\n')
+                print('Appended local AI event:',out)
             deadline=time.monotonic()+1.5
             while time.monotonic()<deadline:
                 show(cap,'Prediction: '+('LEFT to RIGHT' if score>=0 else 'RIGHT to LEFT'),
@@ -173,6 +185,7 @@ def main():
             a.add_argument('--data',default='gestures.npz')
         else:
             a.add_argument('--model',default='models/gesture_loop.npz')
+            a.add_argument('--events-jsonl',default='',help='optional local JSONL event log for other AI tools')
     args=p.parse_args()
     (record if args.command=='record' else predict)(args)
 

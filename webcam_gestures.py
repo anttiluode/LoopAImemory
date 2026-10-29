@@ -48,7 +48,7 @@ def show(cap, title, mirror=False, line2=''):
     return frame,key
 
 
-def capture(cap, frames, fps, mirror=False):
+def capture(cap, frames, fps, mirror=False, on_vector=None):
     """Target cadence; actual intervals vary with camera/CPU. Temporal model
     currently interprets frame index, not true elapsed seconds."""
     encoder=FrameToVector(VisionConfig())
@@ -62,7 +62,9 @@ def capture(cap, frames, fps, mirror=False):
                        'Move early in one direction, then leave the scene empty.')
         if key in (27,ord('q')):
             return None
-        x.append(encoder.push_frame(frame))
+        vec=encoder.push_frame(frame)
+        if on_vector is not None: on_vector(vec)
+        x.append(vec)
     return np.asarray(x,dtype=np.float32)
 
 
@@ -140,9 +142,12 @@ def predict(args):
             start=time.monotonic()
             while time.monotonic()-start < 1.5:
                 show(cap,'GET READY',args.mirror,'Move after the countdown; finish early.')
-            x=capture(cap,frames,args.fps,args.mirror)
+            state=np.zeros(32 if model=='dual' else 16)
+            def step_memory(u):
+                nonlocal state
+                state=net.step(state,u)
+            x=capture(cap,frames,args.fps,args.mirror,on_vector=step_memory)
             if x is None:break
-            state=net.encode(x[None,:])[0]
             score=float(head.score(state[None,:])[0])
             print('Temporal decision:', 'LEFT -> RIGHT' if score>=0 else 'RIGHT -> LEFT',
                   f'(uncalibrated linear margin {score:.3f})')

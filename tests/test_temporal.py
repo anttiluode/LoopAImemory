@@ -73,3 +73,13 @@ class TemporalTests(unittest.TestCase):
 
 
 if __name__=='__main__':unittest.main()
+
+class ForecastTests(unittest.TestCase):
+    def test_two_step_transition_is_predictive(self):
+        from predict_next import streams
+        x,y=streams(n=1000,seed=10)
+        z,v=streams(n=400,seed=20)
+        net=DualPathMemory(seed=90)
+        h=LinearHead().fit(net.encode(x),y)
+        self.assertGreater(h.accuracy(net.encode(z),v),.86)
+        self.assertLess(LinearHead().fit(x[:,-1],y).accuracy(z[:,-1],v),.62)

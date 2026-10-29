@@ -41,3 +41,19 @@ The rotating path provides temporal separation for independent older symbols, wh
 Experiments are all synthetic, with fixed input encoding, no true sensory scenes, no trained video encoder, no explicit seconds-based phase propagation, no physical waves, and no neural data. The binary-symbol tests are valuable diagnostics, not machine understanding of time. Do not claim novelty, biological implementation or extraordinary memory compression.
 
 Run the experiment using `python benchmark.py --seeds 5`, `python lag_benchmark.py` and `python -m unittest discover -s tests -v`.
+
+## Predicting an unseen next event
+
+A second independent synthetic benchmark was added in `predict_next.py`. Generator: balanced two-step stochastic Markov rule (90% copy from `t-2`, 10% flip), 16 sequential observations each containing the signed vector plus Gaussian noise SD=.02, then forecast the next symbol. Five seeds, independent 1,200/600 train/test sequences per seed.
+
+| Model | Five-seed mean |
+|---|---:|
+| Latest input only | 51.2% |
+| Exponential average (decay .75) | 61.3% |
+| Preceding event oracle (two-frame buffer) | **91.1%** |
+| Signed exactly linear recurrent state | **91.1%** |
+| Identity nonlinear gate | 86.5% |
+| Signed nonlinear gate | **91.1%** |
+| Dual path 32D | **91.1%** |
+
+A state captures the short history needed to forecast, but a standard two-frame buffer does just as well here. This experiment supports a practical learning API, not an architectural breakthrough. Results are neither a Wave-RNN reproduction nor an evaluation on real sensory events.
